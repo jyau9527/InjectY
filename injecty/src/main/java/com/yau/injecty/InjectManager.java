@@ -6,6 +6,7 @@ import android.view.View;
 import com.yau.injecty.annotation.ContentView;
 import com.yau.injecty.annotation.EventType;
 import com.yau.injecty.annotation.FindView;
+import com.yau.injecty.annotation.GetString;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -34,6 +35,7 @@ public class InjectManager {
         injectContentView(activity);
         injectViews(activity);
         injectEvents(activity);
+        injectString(activity);
     }
 
     private void injectContentView(Activity activity) {
@@ -122,6 +124,25 @@ public class InjectManager {
             }
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void injectString(Activity activity) {
+        Class clazz = activity.getClass();
+        Field[] fields = clazz.getDeclaredFields();
+        for (Field field : fields) {
+            GetString getString = field.getAnnotation(GetString.class);
+            if (getString != null) {
+                try {
+                    int resId = getString.value();
+                    String[] args = getString.args();
+                    String string = activity.getString(resId, (Object[]) args);
+                    field.setAccessible(true);
+                    field.set(activity, string);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }
